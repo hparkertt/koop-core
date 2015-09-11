@@ -1,9 +1,13 @@
+var _ = require('lodash')
 var express = require('express')
 var bodyParser = require('body-parser')
-var pkg = require('./package')
-var _ = require('lodash')
+var morgan = require('morgan')
 var multipart = require('connect-multiparty')()
+var urljoin = require('url-join')
+var pkg = require('./package')
 var lib = require('./lib')
+var logger = require('./lib/Logger')
+var util = require('./lib/util')
 
 module.exports = function (config) {
   var koop = express()
@@ -17,7 +21,7 @@ module.exports = function (config) {
 
   koop.version = pkg.version
   koop.config = config || {}
-  koop.log = new koop.Logger(koop.config)
+  koop.log = logger(koop.config)
   koop.files = new koop.Files({
     config: koop.config,
     log: koop.log
@@ -74,6 +78,10 @@ module.exports = function (config) {
   // for demos and preview maps in providers
   koop.set('view engine', 'ejs')
   koop.use(express.static(__dirname + '/public'))
+
+  koop.use(morgan('combined', {
+    stream: logger.stream
+  }))
 
   /**
    * public methods
@@ -193,6 +201,13 @@ module.exports = function (config) {
    * route definitions
    */
 
+  koop.get('/', function (req, res) {
+    res.send({
+      version: koop.version,
+      providers: urljoin(req.protocol + '://', req.get('host'), koop.mountpath, '/providers')
+    })
+  })
+
   /**
    * serves koop.services object
    *
@@ -210,6 +225,13 @@ module.exports = function (config) {
    * @param {object} res - outgoing response
    */
   koop.get('/providers/:provider', function (req, res) {
+    if (!koop.services[req.params.provider]) {
+      var err = new Error('Provider not found')
+      err.code = 404
+
+      return res.status(err.code).json(util.errorResponse(err))
+    }
+
     res.json(koop.services[req.params.provider])
   })
 
@@ -223,7 +245,7 @@ module.exports = function (config) {
     var sqlQuery = "select * from koopinfo where id ilike '%" + req.params.provider + "%'"
 
     koop.Cache.db._query(sqlQuery, function (err, result) {
-      if (err) return res.status(500).send(err)
+      if (err) return res.status(500).json(util.errorResponse(err))
       res.json(result.rows)
     })
   })
@@ -314,7 +336,7 @@ module.exports = function (config) {
           } else {
             // return the response
             if (error) {
-              res.status(500).send(err)
+              res.status(500).json(util.errorResponse(err))
             } else {
               res.json(response)
             }
