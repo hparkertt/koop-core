@@ -3,7 +3,7 @@
     "errorhandler": "^1.4.2",
     "express": "^4.12.4",
     "koop": "^2.6.0",
-    "koop-gist": "^1.0.1",
+    "koop-gist": "^1.1.1",
     "koop-pgcache": "^1.1.0",
     "morgan": "^1.6.1"
   },

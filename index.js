@@ -1,6 +1,7 @@
 var _ = require('lodash')
 var express = require('express')
 var bodyParser = require('body-parser')
+var errorHandler = require('errorhandler')
 var morgan = require('morgan')
 var multipart = require('connect-multiparty')()
 var urljoin = require('url-join')
@@ -79,9 +80,16 @@ module.exports = function (config) {
   koop.set('view engine', 'ejs')
   koop.use(express.static(__dirname + '/public'))
 
-  koop.use(morgan('combined', {
-    stream: logger.stream
-  }))
+  if (koop.get('env') === 'production') {
+    koop.use(morgan('combined', {
+      stream: logger.stream
+    }))
+  } else {
+    koop.use(morgan('dev', {
+      stream: logger.stream
+    }))
+    koop.use(errorHandler())
+  }
 
   /**
    * public methods

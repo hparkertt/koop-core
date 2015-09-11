@@ -18,10 +18,9 @@ app.use('/koop', koop)
 
 if (app.get('env') === 'production') {
   app.use(logger('combined'))
-  app.use(errorHandler())
 } else {
   app.use(logger('dev'))
-  app.use(errorHandler({ dumpExceptions: true, showStack: true }))
+  app.use(errorHandler())
 }
 
 app.listen(app.get('port'), function () {
