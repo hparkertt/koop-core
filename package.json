@@ -13,7 +13,7 @@
     "Nate Goldman <nate@ngoldman.me>"
   ],
   "dependencies": {
-    "body-parser": "^1.16.0",
+    "body-parser": "^1.18.2",
     "config": "^1.24.0",
     "cors": "^2.8.1",
     "ejs": "^2.3.3",
